@@ -1,0 +1,1 @@
+sbatch --job-name=predict_hotpotqa --output=/home/mila/f/floresl/beam-search/logs/hotpotqa/predict_output_log_hotpotqa --error=/home/mila/f/floresl/beam-search/logs/hotpotqa/predict_error_log_hotpotqa scripts/predict.sh --dataset data/hotpotqa/test.csv --model outputs/facebook/bart-base_data/hotpotqa/checkpoint-26835

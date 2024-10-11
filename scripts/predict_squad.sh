@@ -1,0 +1,1 @@
+sbatch --job-name=predict_squad --output=/home/mila/f/floresl/beam-search/logs/squad/predict_output_log_squad --error=/home/mila/f/floresl/beam-search/logs/squad/predict_error_log_squad scripts/predict.sh --dataset data/squad/test.csv --model outputs/facebook/bart-base_data/squad/checkpoint-26280

@@ -1,0 +1,1 @@
+sbatch --job-name=train_debate --output=/home/mila/f/floresl/beam-search/logs/debatesum/output_log_debatesum --error=/home/mila/f/floresl/beam-search/logs/debatesum/error_log_debatesum scripts/train.sh --dataset data/debatesum --epochs 3

@@ -1,0 +1,1 @@
+sbatch --job-name=predict_debate --output=/home/mila/f/floresl/beam-search/logs/debatesum/predict_output_log_debatesum --error=/home/mila/f/floresl/beam-search/logs/debatesum/predict_error_log_debatesum scripts/predict.sh --dataset data/debatesum/test.csv --model outputs/facebook/bart-base_data/debatesum/checkpoint-1500

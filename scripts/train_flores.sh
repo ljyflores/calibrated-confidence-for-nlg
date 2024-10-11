@@ -1,0 +1,1 @@
+sbatch --job-name=train_flores --output=/home/mila/f/floresl/beam-search/logs/flores/output_log_flores --error=/home/mila/f/floresl/beam-search/logs/flores/error_log_flores scripts/train.sh --dataset data/flores --epochs 3
