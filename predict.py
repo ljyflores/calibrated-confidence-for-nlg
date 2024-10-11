@@ -69,7 +69,7 @@ def main(dataset: str, model: str):
             f.write(f"{line}\n")
     json.dump(
         scores_dict,
-        open(f"results/{OUTPUT_PATH}_scores", "w", encoding="utf-8"),
+        open(f"results/{OUTPUT_PATH}_scores.json", "w", encoding="utf-8"),
         ensure_ascii=True,
         indent=4,
     )
