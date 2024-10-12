@@ -1,14 +1,23 @@
 import argparse
-import numpy as np
+import json
 import pandas as pd
 
-from datasets import Dataset
+from datasets import Dataset  # type: ignore
 from torch import Tensor, device
-from transformers import Seq2SeqTrainingArguments, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
 from tqdm import tqdm
 
 from src.preprocess import encode_dataset
 from src.beam_search import get_beam_score_output
+
+
+def update_dictionary(dict_a: dict[int, list[float]], dict_b: dict[int, list[float]]):
+    for key in dict_b:
+        if key in dict_a:
+            dict_a[key].extend(dict_b[key])
+        else:
+            dict_a[key] = dict_b[key]
+    return dict_a
 
 
 def set_items_to_device(dictionary: dict[str, Tensor], device: device):
@@ -41,24 +50,29 @@ def main(dataset: str, model: str):
     ds = Dataset.from_pandas(df)
     ds = encode_dataset(
         ds,
-        tokenizer,
+        tokenizer,  # type: ignore
         INPUT_COLUMN,
         OUTPUT_COLUMN,
     )
 
     # Run the test set, collect the beam scores and the outputs
-    sentences, scores = list[str](), list[float]()
+    sentences, scores_dict = list[str](), dict[int, list[float]]()
     for batch in turn_dataset_into_batches(ds, EVAL_BATCH_SIZE):
         batch = set_items_to_device(batch, model_.device)
         batch_sentences, batch_scores = get_beam_score_output(model_, tokenizer, batch)
         sentences.extend(batch_sentences)
-        scores.extend(batch_scores)
+        scores_dict = update_dictionary(scores_dict, batch_scores)
 
     # Save
     with open(f"results/{OUTPUT_PATH}_sentences", "w") as f:
         for line in sentences:
             f.write(f"{line}\n")
-    np.array(scores).tofile(f"results/{OUTPUT_PATH}_scores")
+    json.dump(
+        scores_dict,
+        open(f"results/{OUTPUT_PATH}_scores.json", "w", encoding="utf-8"),
+        ensure_ascii=True,
+        indent=4,
+    )
 
 
 if __name__ == "__main__":
