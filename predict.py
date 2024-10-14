@@ -34,7 +34,7 @@ def turn_dataset_into_batches(dataset: Dataset, batch_size: int):
         yield item
 
 
-def main(dataset: str, model: str):
+def main(dataset: str, model: str, num_beams: int):
     MODEL_PATH = model
     DATA_PATH = dataset
     OUTPUT_PATH = f"{MODEL_PATH.split('/')[-1]}_{DATA_PATH.split('/')[1]}"
@@ -59,7 +59,9 @@ def main(dataset: str, model: str):
     sentences, scores_dict = list[str](), dict[int, list[float]]()
     for batch in turn_dataset_into_batches(ds, EVAL_BATCH_SIZE):
         batch = set_items_to_device(batch, model_.device)
-        batch_sentences, batch_scores = get_beam_score_output(model_, tokenizer, batch)
+        batch_sentences, batch_scores = get_beam_score_output(
+            model=model_, tokenizer=tokenizer, item=batch, num_beams=num_beams
+        )
         sentences.extend(batch_sentences)
         scores_dict = update_dictionary(scores_dict, batch_scores)
 
@@ -81,6 +83,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", type=str, required=False, default="facebook/bart-base"
     )
+    parser.add_argument("--num_beams", type=int, required=False, default=100)
     args_dict = vars(parser.parse_args())
 
     print(args_dict)

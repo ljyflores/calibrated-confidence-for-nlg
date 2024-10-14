@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name %name
 #SBATCH --nodes=1
-#SBATCH --mem=48GB
+#SBATCH --mem=100GB
 #SBATCH --cpus-per-gpu=4
 #SBATCH --gres=gpu:1
 #SBATCH --constraint="ampere"
