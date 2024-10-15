@@ -4,7 +4,6 @@
 #SBATCH --mem=100GB
 #SBATCH --cpus-per-gpu=4
 #SBATCH --gres=gpu:1
-#SBATCH --constraint="ampere"
 
 module --force purge
 module load anaconda/3

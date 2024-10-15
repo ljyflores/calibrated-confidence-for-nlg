@@ -40,7 +40,7 @@ def main(dataset: str, model: str, num_beams: int):
     OUTPUT_PATH = f"{MODEL_PATH.split('/')[-1]}_{DATA_PATH.split('/')[1]}"
     INPUT_COLUMN = "source"
     OUTPUT_COLUMN = "target"
-    EVAL_BATCH_SIZE = 2
+    EVAL_BATCH_SIZE = 1
 
     # Load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)  # type: ignore

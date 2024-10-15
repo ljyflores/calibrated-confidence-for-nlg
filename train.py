@@ -68,7 +68,7 @@ def main(
         run_name=MODEL_OUTPUT_PATH,
         # Saving parameters
         save_strategy="epoch",
-        save_total_limit=3,
+        save_total_limit=1,
     )
 
     trainer = Seq2SeqTrainer(
