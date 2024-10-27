@@ -14,7 +14,11 @@ metric_bleu = load("bleu")  # type: ignore
 
 
 def calculate_bleu(predictions: List[str], references: List[List[str]]):
-    results_bleu = metric_bleu.compute(predictions=predictions, references=references)  # type: ignore
+    try:
+        results_bleu = metric_bleu.compute(predictions=predictions, references=references)  # type: ignore
+    except Exception as e:
+        print(e)
+        return 0.0
     if results_bleu:
         return float(results_bleu["bleu"])  # type: ignore
     else:

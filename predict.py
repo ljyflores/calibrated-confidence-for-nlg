@@ -8,16 +8,11 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
 from tqdm import tqdm
 
 from src.preprocess import encode_dataset
-from src.beam_search import get_beam_score_output
-
-
-def update_dictionary(dict_a: dict[int, list[float]], dict_b: dict[int, list[float]]):
-    for key in dict_b:
-        if key in dict_a:
-            dict_a[key].extend(dict_b[key])
-        else:
-            dict_a[key] = dict_b[key]
-    return dict_a
+from src.confidence import (
+    get_confidence_scores,
+    merge_confidence_outputs,
+    ConfidenceOutput,
+)
 
 
 def set_items_to_device(dictionary: dict[str, Tensor], device: device):
@@ -56,22 +51,20 @@ def main(dataset: str, model: str, num_beams: int):
     )
 
     # Run the test set, collect the beam scores and the outputs
-    sentences, scores_dict = list[str](), dict[int, list[float]]()
+    confidence_results = ConfidenceOutput()
     for batch in turn_dataset_into_batches(ds, EVAL_BATCH_SIZE):
-        batch = set_items_to_device(batch, model_.device)
-        batch_sentences, batch_scores = get_beam_score_output(
-            model=model_, tokenizer=tokenizer, item=batch, num_beams=num_beams
+        batch = set_items_to_device(batch, model_.device)  # type: ignore
+        confidence_output = get_confidence_scores(
+            model=model_, tokenizer=tokenizer, item=batch, num_beams=num_beams  # type: ignore
         )
-        sentences.extend(batch_sentences)
-        scores_dict = update_dictionary(scores_dict, batch_scores)
+        confidence_results = merge_confidence_outputs(
+            confidence_results, confidence_output
+        )
 
     # Save
-    with open(f"results/{OUTPUT_PATH}_sentences", "w") as f:
-        for line in sentences:
-            f.write(f"{line}\n")
     json.dump(
-        scores_dict,
-        open(f"results/{OUTPUT_PATH}_scores.json", "w", encoding="utf-8"),
+        confidence_results.to_dict(),  # type: ignore
+        open(f"results/{OUTPUT_PATH}.json", "w", encoding="utf-8"),
         ensure_ascii=True,
         indent=4,
     )
