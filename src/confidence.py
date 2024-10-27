@@ -4,6 +4,7 @@ from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from itertools import combinations
 from torch import Tensor
+from torch.nn.functional import kl_div
 from transformers import (  # pyright: ignore[reportMissingTypeStubs]
     GenerationConfig,
     PreTrainedModel,
@@ -29,6 +30,7 @@ class ConfidenceOutput:
     dropout_bleu_variance: list[float] | None = None
     dropout_meteor_score: list[float] | None = None
     dropout_entropy: list[float] | None = None
+    dropout_disagreement: list[float] | None = None
 
 
 def update_dictionary(dict_a: dict[int, list[float]], dict_b: dict[int, list[float]]):
@@ -59,6 +61,8 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         dropout_meteor_score=(conf1.dropout_meteor_score or [])
         + (conf2.dropout_meteor_score or []),
         dropout_entropy=(conf1.dropout_entropy or []) + (conf2.dropout_entropy or []),
+        dropout_disagreement=(conf1.dropout_disagreement or [])
+        + (conf2.dropout_disagreement or []),
     )
 
 
@@ -123,6 +127,22 @@ def compute_mean_token_entropy(token_probs_tensor: Tensor):
     return [float(x) for x in entropy.mean(dim=2).mean(dim=1).detach()]
 
 
+def compute_disagreement(dropout_token_probs: Tensor):
+    assert dropout_token_probs.dim() == 4
+    # actual_token_probs: batch_size x seq_len x vocab_size
+    # dropout_token_probs: batch_size x num_dropout x seq_len x vocab_size
+    _, num_dropout, _, _ = dropout_token_probs.shape
+    mean_dropout_token_probs = dropout_token_probs.mean(dim=1)
+    mean_dropout_token_probs = mean_dropout_token_probs.unsqueeze(dim=1).repeat(
+        1, num_dropout, 1, 1
+    )
+    kl_div_tensor = kl_div(
+        mean_dropout_token_probs.log(), dropout_token_probs, reduction="none"
+    )
+    disagreement_scores = kl_div_tensor.sum(dim=-1).mean(dim=-1).sum(dim=-1)
+    return [float(x) for x in disagreement_scores]
+
+
 def get_confidence_scores(
     model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
@@ -183,6 +203,9 @@ def get_confidence_scores(
         for sents in dropout_sentences
     ]
 
+    # Compute dropout disagreement
+    scores_dropout_disagreement = compute_disagreement(dropout_probs)
+
     scores_dropout_entropy = compute_monte_carlo_mean_token_entropy(dropout_probs)
 
     return ConfidenceOutput(
@@ -195,4 +218,5 @@ def get_confidence_scores(
         dropout_bleu_variance=scores_dropout_bleu_variance,
         dropout_meteor_score=scores_dropout_meteor_score,
         dropout_entropy=scores_dropout_entropy,
+        dropout_disagreement=scores_dropout_disagreement,
     )
