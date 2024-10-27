@@ -13,7 +13,7 @@ def main(
     epochs: int,
 ):
     DATA_PATH = dataset
-    MODEL_PATH = "facebook/bart-base"
+    MODEL_PATH = "google/flan-t5-base"  # "facebook/bart-base"
     MODEL_OUTPUT_PATH = f"{MODEL_PATH}_{DATA_PATH}"
     TRAIN_BATCH_SIZE = 5
     TRAIN_GRAD_ACC = 2
@@ -53,7 +53,7 @@ def main(
         per_device_train_batch_size=TRAIN_BATCH_SIZE,
         gradient_accumulation_steps=TRAIN_GRAD_ACC,
         gradient_checkpointing=True,
-        fp16=True,
+        fp16=False if "flan-t5" in MODEL_PATH else True,
         lr_scheduler_type="constant",
         # Evaluation parameters
         eval_strategy="epoch",
@@ -68,7 +68,7 @@ def main(
         run_name=MODEL_OUTPUT_PATH,
         # Saving parameters
         save_strategy="epoch",
-        save_total_limit=3,
+        save_total_limit=1,
     )
 
     trainer = Seq2SeqTrainer(

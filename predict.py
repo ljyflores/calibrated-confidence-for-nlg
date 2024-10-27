@@ -8,16 +8,11 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
 from tqdm import tqdm
 
 from src.preprocess import encode_dataset
-from src.beam_search import get_beam_score_output
-
-
-def update_dictionary(dict_a: dict[int, list[float]], dict_b: dict[int, list[float]]):
-    for key in dict_b:
-        if key in dict_a:
-            dict_a[key].extend(dict_b[key])
-        else:
-            dict_a[key] = dict_b[key]
-    return dict_a
+from src.confidence import (
+    get_confidence_scores,
+    merge_confidence_outputs,
+    ConfidenceOutput,
+)
 
 
 def set_items_to_device(dictionary: dict[str, Tensor], device: device):
@@ -34,13 +29,13 @@ def turn_dataset_into_batches(dataset: Dataset, batch_size: int):
         yield item
 
 
-def main(dataset: str, model: str):
+def main(dataset: str, model: str, num_beams: int):
     MODEL_PATH = model
     DATA_PATH = dataset
     OUTPUT_PATH = f"{MODEL_PATH.split('/')[-1]}_{DATA_PATH.split('/')[1]}"
     INPUT_COLUMN = "source"
     OUTPUT_COLUMN = "target"
-    EVAL_BATCH_SIZE = 2
+    EVAL_BATCH_SIZE = 1
 
     # Load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)  # type: ignore
@@ -56,20 +51,20 @@ def main(dataset: str, model: str):
     )
 
     # Run the test set, collect the beam scores and the outputs
-    sentences, scores_dict = list[str](), dict[int, list[float]]()
+    confidence_results = ConfidenceOutput()
     for batch in turn_dataset_into_batches(ds, EVAL_BATCH_SIZE):
-        batch = set_items_to_device(batch, model_.device)
-        batch_sentences, batch_scores = get_beam_score_output(model_, tokenizer, batch)
-        sentences.extend(batch_sentences)
-        scores_dict = update_dictionary(scores_dict, batch_scores)
+        batch = set_items_to_device(batch, model_.device)  # type: ignore
+        confidence_output = get_confidence_scores(
+            model=model_, tokenizer=tokenizer, item=batch, num_beams=num_beams  # type: ignore
+        )
+        confidence_results = merge_confidence_outputs(
+            confidence_results, confidence_output
+        )
 
     # Save
-    with open(f"results/{OUTPUT_PATH}_sentences", "w") as f:
-        for line in sentences:
-            f.write(f"{line}\n")
     json.dump(
-        scores_dict,
-        open(f"results/{OUTPUT_PATH}_scores.json", "w", encoding="utf-8"),
+        confidence_results.to_dict(),  # type: ignore
+        open(f"results/{OUTPUT_PATH}.json", "w", encoding="utf-8"),
         ensure_ascii=True,
         indent=4,
     )
@@ -81,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", type=str, required=False, default="facebook/bart-base"
     )
+    parser.add_argument("--num_beams", type=int, required=False, default=100)
     args_dict = vars(parser.parse_args())
 
     print(args_dict)
