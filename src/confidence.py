@@ -25,7 +25,9 @@ class ConfidenceOutput:
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
     importance_weighted_log_probs: list[float] | None = None
+    beam_score_log_probs: dict[int, list[float]] | None = None
     beam_score_ratios: dict[int, list[float]] | None = None
+    beam_score_sum_top_k: dict[int, list[float]] | None = None
     mean_token_entropy: list[float] | None = None
     dropout_bleu_variance: list[float] | None = None
     dropout_meteor_score: list[float] | None = None
@@ -53,6 +55,12 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         + (conf2.importance_weighted_log_probs or []),
         beam_score_ratios=update_dictionary(
             (conf1.beam_score_ratios or {}), (conf2.beam_score_ratios or {})
+        ),
+        beam_score_log_probs=update_dictionary(
+            (conf1.beam_score_log_probs or {}), (conf2.beam_score_log_probs or {})
+        ),
+        beam_score_sum_top_k=update_dictionary(
+            (conf1.beam_score_sum_top_k or {}), (conf2.beam_score_sum_top_k or {})
         ),
         mean_token_entropy=(conf1.mean_token_entropy or [])
         + (conf2.mean_token_entropy or []),
@@ -97,7 +105,27 @@ def compute_monte_carlo_mean_token_entropy(dropout_token_probs_tensor: Tensor):
     ]
 
 
-def compute_beam_scores(scores_per_beam: Tensor):
+def reorganize_beam_scores(scores_per_beam: Tensor):
+    # Input: batch_size x num_beams
+    assert scores_per_beam.dim() == 2
+    scores_by_k_dict = {
+        k: [float(x) for x in scores_per_beam[:, k]]
+        for k in range(scores_per_beam.shape[1])
+    }
+    return scores_by_k_dict
+
+
+def compute_beam_score_sum_top_k(scores_per_beam: Tensor):
+    # Input: batch_size x num_beams
+    assert scores_per_beam.dim() == 2
+    scores_by_k_dict = {
+        k: [float(x) for x in scores_per_beam[:, : k + 1].sum(dim=-1)]
+        for k in range(scores_per_beam.shape[1])
+    }
+    return scores_by_k_dict
+
+
+def compute_beam_score_ratios(scores_per_beam: Tensor):
     # Input: batch_size x num_beams
     assert scores_per_beam.dim() == 2
     best_beam_score = scores_per_beam[:, 0]
@@ -178,8 +206,14 @@ def get_confidence_scores(
     token_probs = reshape_token_probs_by_beam(output.scores, batch_size, num_beams)  # type: ignore
     dropout_sentences = decode_monte_carlo_dropout_sentences(dropout_probs, tokenizer)
 
+    # Compute beam scores
+    scores_beam_score_log_probs = reorganize_beam_scores(sequence_probs)
+
     # Compute beam score ratios
-    scores_beam_score_ratios = compute_beam_scores(sequence_probs)
+    scores_beam_score_ratios = compute_beam_score_ratios(sequence_probs)
+
+    # Compute beam score sums
+    scores_beam_score_sums = compute_beam_score_sum_top_k(sequence_probs)
 
     # Compute length normalized log probs
     scores_length_norm_log_probs = [float(x) for x in sequence_probs[:, 0]]
@@ -213,7 +247,9 @@ def get_confidence_scores(
         dropout_sentences=dropout_sentences,
         length_normalized_log_probs=scores_length_norm_log_probs,
         importance_weighted_log_probs=scores_importance_weighted_log_probs,
+        beam_score_log_probs=scores_beam_score_log_probs,
         beam_score_ratios=scores_beam_score_ratios,
+        beam_score_sum_top_k=scores_beam_score_sums,
         mean_token_entropy=scores_mean_token_entropy,
         dropout_bleu_variance=scores_dropout_bleu_variance,
         dropout_meteor_score=scores_dropout_meteor_score,
