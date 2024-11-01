@@ -24,7 +24,7 @@ class ConfidenceOutput:
     sentences: list[str] | None = None
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
-    importance_weighted_log_probs: list[float] | None = None
+    importance_weighted_log_probs: dict[int, list[float]] | None = None
     beam_score_log_probs: dict[int, list[float]] | None = None
     beam_score_ratios: dict[int, list[float]] | None = None
     beam_score_sum_top_k: dict[int, list[float]] | None = None
@@ -51,8 +51,10 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         + (conf2.dropout_sentences or []),
         length_normalized_log_probs=(conf1.length_normalized_log_probs or [])
         + (conf2.length_normalized_log_probs or []),
-        importance_weighted_log_probs=(conf1.importance_weighted_log_probs or [])
-        + (conf2.importance_weighted_log_probs or []),
+        importance_weighted_log_probs=update_dictionary(
+            (conf1.importance_weighted_log_probs or {}),
+            (conf2.importance_weighted_log_probs or {}),
+        ),
         beam_score_ratios=update_dictionary(
             (conf1.beam_score_ratios or {}), (conf2.beam_score_ratios or {})
         ),
@@ -139,10 +141,15 @@ def compute_beam_score_ratios(scores_per_beam: Tensor):
 def compute_importance_weighted_log_probs(scores_per_beam: Tensor):
     # Input: batch_size x num_beams
     assert scores_per_beam.dim() == 2
-    beam_probs = scores_per_beam.exp()
-    beam_importance_weights = beam_probs / beam_probs.sum(dim=-1).unsqueeze(-1)
-    scores = (-1.0 * beam_importance_weights * scores_per_beam).sum(dim=-1)
-    return [float(x) for x in scores]
+    scores_by_k_dict = dict[int, list[float]]()
+    for i in range(scores_per_beam.shape[1]):
+        top_k_scores = scores_per_beam[:, : i + 1]
+        beam_probs = top_k_scores.exp()
+        beam_importance_weights = beam_probs / beam_probs.sum(dim=-1).unsqueeze(-1)
+        scores = (-1.0 * beam_importance_weights * top_k_scores).sum(dim=-1)
+        scores = [float(x) for x in scores]
+        scores_by_k_dict[i] = scores
+    return scores_by_k_dict
 
 
 def compute_mean_token_entropy(token_probs_tensor: Tensor):
@@ -186,6 +193,7 @@ def get_confidence_scores(
     )
 
     batch_size, _ = item["input_ids"].shape
+    model.eval()
     output = model.generate(  # type: ignore
         input_ids=item.get("input_ids"),
         generation_config=beam_search_config,
