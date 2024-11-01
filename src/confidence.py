@@ -4,6 +4,7 @@ from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from itertools import combinations
 from torch import Tensor
+from torch.nn.functional import kl_div
 from transformers import (  # pyright: ignore[reportMissingTypeStubs]
     GenerationConfig,
     PreTrainedModel,
@@ -24,11 +25,14 @@ class ConfidenceOutput:
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
     importance_weighted_log_probs: list[float] | None = None
+    beam_score_log_probs: dict[int, list[float]] | None = None
     beam_score_ratios: dict[int, list[float]] | None = None
+    beam_score_sum_top_k: dict[int, list[float]] | None = None
     mean_token_entropy: list[float] | None = None
     dropout_bleu_variance: list[float] | None = None
     dropout_meteor_score: list[float] | None = None
     dropout_entropy: list[float] | None = None
+    dropout_disagreement: list[float] | None = None
 
 
 def update_dictionary(dict_a: dict[int, list[float]], dict_b: dict[int, list[float]]):
@@ -52,6 +56,12 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         beam_score_ratios=update_dictionary(
             (conf1.beam_score_ratios or {}), (conf2.beam_score_ratios or {})
         ),
+        beam_score_log_probs=update_dictionary(
+            (conf1.beam_score_log_probs or {}), (conf2.beam_score_log_probs or {})
+        ),
+        beam_score_sum_top_k=update_dictionary(
+            (conf1.beam_score_sum_top_k or {}), (conf2.beam_score_sum_top_k or {})
+        ),
         mean_token_entropy=(conf1.mean_token_entropy or [])
         + (conf2.mean_token_entropy or []),
         dropout_bleu_variance=(conf1.dropout_bleu_variance or [])
@@ -59,6 +69,8 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         dropout_meteor_score=(conf1.dropout_meteor_score or [])
         + (conf2.dropout_meteor_score or []),
         dropout_entropy=(conf1.dropout_entropy or []) + (conf2.dropout_entropy or []),
+        dropout_disagreement=(conf1.dropout_disagreement or [])
+        + (conf2.dropout_disagreement or []),
     )
 
 
@@ -93,7 +105,27 @@ def compute_monte_carlo_mean_token_entropy(dropout_token_probs_tensor: Tensor):
     ]
 
 
-def compute_beam_scores(scores_per_beam: Tensor):
+def reorganize_beam_scores(scores_per_beam: Tensor):
+    # Input: batch_size x num_beams
+    assert scores_per_beam.dim() == 2
+    scores_by_k_dict = {
+        k: [float(x) for x in scores_per_beam[:, k]]
+        for k in range(scores_per_beam.shape[1])
+    }
+    return scores_by_k_dict
+
+
+def compute_beam_score_sum_top_k(scores_per_beam: Tensor):
+    # Input: batch_size x num_beams
+    assert scores_per_beam.dim() == 2
+    scores_by_k_dict = {
+        k: [float(x) for x in scores_per_beam[:, : k + 1].sum(dim=-1)]
+        for k in range(scores_per_beam.shape[1])
+    }
+    return scores_by_k_dict
+
+
+def compute_beam_score_ratios(scores_per_beam: Tensor):
     # Input: batch_size x num_beams
     assert scores_per_beam.dim() == 2
     best_beam_score = scores_per_beam[:, 0]
@@ -121,6 +153,22 @@ def compute_mean_token_entropy(token_probs_tensor: Tensor):
         -1.0 * token_probs_tensor * (token_probs_tensor + stability_constant).log()
     )
     return [float(x) for x in entropy.mean(dim=2).mean(dim=1).detach()]
+
+
+def compute_disagreement(dropout_token_probs: Tensor):
+    assert dropout_token_probs.dim() == 4
+    # actual_token_probs: batch_size x seq_len x vocab_size
+    # dropout_token_probs: batch_size x num_dropout x seq_len x vocab_size
+    _, num_dropout, _, _ = dropout_token_probs.shape
+    mean_dropout_token_probs = dropout_token_probs.mean(dim=1)
+    mean_dropout_token_probs = mean_dropout_token_probs.unsqueeze(dim=1).repeat(
+        1, num_dropout, 1, 1
+    )
+    kl_div_tensor = kl_div(
+        mean_dropout_token_probs.log(), dropout_token_probs, reduction="none"
+    )
+    disagreement_scores = kl_div_tensor.sum(dim=-1).mean(dim=-1).sum(dim=-1)
+    return [float(x) for x in disagreement_scores]
 
 
 def get_confidence_scores(
@@ -158,8 +206,14 @@ def get_confidence_scores(
     token_probs = reshape_token_probs_by_beam(output.scores, batch_size, num_beams)  # type: ignore
     dropout_sentences = decode_monte_carlo_dropout_sentences(dropout_probs, tokenizer)
 
+    # Compute beam scores
+    scores_beam_score_log_probs = reorganize_beam_scores(sequence_probs)
+
     # Compute beam score ratios
-    scores_beam_score_ratios = compute_beam_scores(sequence_probs)
+    scores_beam_score_ratios = compute_beam_score_ratios(sequence_probs)
+
+    # Compute beam score sums
+    scores_beam_score_sums = compute_beam_score_sum_top_k(sequence_probs)
 
     # Compute length normalized log probs
     scores_length_norm_log_probs = [float(x) for x in sequence_probs[:, 0]]
@@ -183,6 +237,9 @@ def get_confidence_scores(
         for sents in dropout_sentences
     ]
 
+    # Compute dropout disagreement
+    scores_dropout_disagreement = compute_disagreement(dropout_probs)
+
     scores_dropout_entropy = compute_monte_carlo_mean_token_entropy(dropout_probs)
 
     return ConfidenceOutput(
@@ -190,9 +247,12 @@ def get_confidence_scores(
         dropout_sentences=dropout_sentences,
         length_normalized_log_probs=scores_length_norm_log_probs,
         importance_weighted_log_probs=scores_importance_weighted_log_probs,
+        beam_score_log_probs=scores_beam_score_log_probs,
         beam_score_ratios=scores_beam_score_ratios,
+        beam_score_sum_top_k=scores_beam_score_sums,
         mean_token_entropy=scores_mean_token_entropy,
         dropout_bleu_variance=scores_dropout_bleu_variance,
         dropout_meteor_score=scores_dropout_meteor_score,
         dropout_entropy=scores_dropout_entropy,
+        dropout_disagreement=scores_dropout_disagreement,
     )

@@ -32,7 +32,7 @@ def turn_dataset_into_batches(dataset: Dataset, batch_size: int):
 def main(dataset: str, model: str, num_beams: int):
     MODEL_PATH = model
     DATA_PATH = dataset
-    OUTPUT_PATH = f"{MODEL_PATH.split('/')[-1]}_{DATA_PATH.split('/')[1]}"
+    OUTPUT_PATH = f"{'_'.join(MODEL_PATH.split('/'))[-3:]}_{DATA_PATH.split('/')[1]}"
     INPUT_COLUMN = "source"
     OUTPUT_COLUMN = "target"
     EVAL_BATCH_SIZE = 1
