@@ -48,4 +48,6 @@ def get_dropout_predictions(
         probs = torch.stack(token_scores, dim=1).softmax(dim=-1)
         _, seq_len, vocab_size = probs.shape
         probs = probs.reshape(batch_size, num_dropout_samples, seq_len, vocab_size)
-        return probs
+
+    model.eval()  # Return the model to eval mode
+    return probs
