@@ -43,7 +43,7 @@ def prepare_scores(json_path: str, targets: list[str], metric: Literal["rougeL",
     beam_score_ratios: dict[str, list[float]] = scores.pop("beam_score_ratios")
     beam_score_log_probs: dict[str, list[float]] = scores.pop("beam_score_log_probs")
     beam_score_sum_top_k: dict[str, list[float]] = scores.pop("beam_score_sum_top_k")
-    beam_score_importance_weighted: dict[str, list[float]] = scores.pop(
+    beam_score_impt_weighted: dict[str, list[float]] = scores.pop(
         "importance_weighted_log_probs"
     )
 
@@ -51,26 +51,20 @@ def prepare_scores(json_path: str, targets: list[str], metric: Literal["rougeL",
     metrics = compute_metric_by_sample(scores["sentences"], targets, metric)
     df_score[metric] = metrics
 
-    _, bs_ratios_k = find_k_with_best_correlation(metrics, beam_score_ratios)
-    _, bs_log_probs_k = find_k_with_best_correlation(metrics, beam_score_log_probs)
-    _, bs_sum_top_k = find_k_with_best_correlation(metrics, beam_score_sum_top_k)
-    _, bs_imp_wt_k = find_k_with_best_correlation(
-        metrics, beam_score_importance_weighted
-    )
+    _, best_k = find_k_with_best_correlation(metrics, beam_score_ratios)
+    # _, bs_log_probs_k = find_k_with_best_correlation(metrics, beam_score_log_probs)
+    # _, bs_sum_top_k = find_k_with_best_correlation(metrics, beam_score_sum_top_k)
+    # _, bs_imp_wt_k = find_k_with_best_correlation(
+    #     metrics, beam_score_importance_weighted
+    # )
 
-    df_score[f"beam_score_ratios_{bs_ratios_k}"] = beam_score_ratios[str(bs_ratios_k)]
-    df_score[f"beam_score_log_probs_{bs_log_probs_k}"] = beam_score_log_probs[
-        str(bs_log_probs_k)
-    ]
-    df_score[f"beam_score_top_k_{bs_sum_top_k}"] = beam_score_sum_top_k[
-        str(bs_sum_top_k)
-    ]
-    df_score[f"beam_score_importance_weighted_{bs_imp_wt_k}"] = (
-        beam_score_importance_weighted[str(bs_imp_wt_k)]
-    )
+    df_score[f"beam_score_ratios_{best_k}"] = beam_score_ratios[str(best_k)]
+    df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
+    df_score[f"beam_score_top_k_{best_k}"] = beam_score_sum_top_k[str(best_k)]
+    df_score[f"beam_score_impt_wt_{best_k}"] = beam_score_impt_weighted[str(best_k)]
     return df_score, {
         "beam_score_ratios": beam_score_ratios,
         "beam_score_log_probs": beam_score_log_probs,
         "beam_score_sum_top_k": beam_score_sum_top_k,
-        "beam_score_importance_weighted": beam_score_importance_weighted,
+        "beam_score_importance_wt": beam_score_impt_weighted,
     }
