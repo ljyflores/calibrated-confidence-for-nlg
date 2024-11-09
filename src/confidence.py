@@ -24,6 +24,7 @@ class ConfidenceOutput:
     sentences: list[str] | None = None
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
+    sequence_joint_log_probs: list[list[float]] | None = None
     importance_weighted_log_probs: dict[int, list[float]] | None = None
     beam_score_log_probs: dict[int, list[float]] | None = None
     beam_score_ratios: dict[int, list[float]] | None = None
@@ -73,6 +74,8 @@ def merge_confidence_outputs(conf1: ConfidenceOutput, conf2: ConfidenceOutput):
         dropout_entropy=(conf1.dropout_entropy or []) + (conf2.dropout_entropy or []),
         dropout_disagreement=(conf1.dropout_disagreement or [])
         + (conf2.dropout_disagreement or []),
+        sequence_joint_log_probs=(conf1.sequence_joint_log_probs or [])
+        + (conf2.sequence_joint_log_probs or []),
     )
 
 
@@ -226,6 +229,12 @@ def get_confidence_scores(
     # Compute length normalized log probs
     scores_length_norm_log_probs = [float(x) for x in sequence_probs[:, 0]]
 
+    # Compute joint log probs
+    scores_joint_log_probs = [
+        [float(x) for x in lst]
+        for lst in token_probs.max(dim=-1).values.log().sum(dim=-1)
+    ]
+
     # Compute importance weighted probs
     scores_importance_weighted_log_probs = compute_importance_weighted_log_probs(
         sequence_probs
@@ -254,6 +263,7 @@ def get_confidence_scores(
         sentences=sentences,
         dropout_sentences=dropout_sentences,
         length_normalized_log_probs=scores_length_norm_log_probs,
+        sequence_joint_log_probs=scores_joint_log_probs,
         importance_weighted_log_probs=scores_importance_weighted_log_probs,
         beam_score_log_probs=scores_beam_score_log_probs,
         beam_score_ratios=scores_beam_score_ratios,

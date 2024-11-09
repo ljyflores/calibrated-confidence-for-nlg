@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 from datasets import Dataset  # type: ignore
-from torch import Tensor, device
+from torch import Tensor, device  # type: ignore
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
 from tqdm import tqdm
 
