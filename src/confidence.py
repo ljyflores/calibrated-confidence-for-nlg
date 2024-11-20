@@ -21,7 +21,7 @@ MAX_NEW_TOKENS = 200
 @dataclass_json
 @dataclass
 class ConfidenceOutput:
-    sentences: list[str] | None = None
+    sentences: list[list[str]] | None = None
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
     sequence_joint_log_probs: list[list[float]] | None = None
