@@ -41,7 +41,7 @@ def decode_beam_search_sentences(
     assert sequences.dim() == 2
     sequences = sequences.reshape(batch_size, num_beams, -1)
     list_of_sentences = decode_multi_output_sentences(sequences, tokenizer)
-    return [lst[0] for lst in list_of_sentences]
+    return list_of_sentences
 
 
 def decode_monte_carlo_dropout_sentences(

@@ -15,7 +15,7 @@ metric_bleu = load("bleu")  # type: ignore
 
 def calculate_bleu(predictions: List[str], references: List[List[str]]):
     try:
-        results_bleu = metric_bleu.compute(predictions=predictions, references=references)  # type: ignore
+        results_bleu = metric_bleu.compute(predictions=predictions, references=references, smooth=True)  # type: ignore
     except Exception as e:
         print(e)
         return 0.0
@@ -46,9 +46,7 @@ def calculate_rouge(
     Returns:
          Dict[score: value] if aggregate else defaultdict(list) keyed by rouge_keys
     """
-    scorer = rouge_scorer.RougeScorer(
-        ["rouge1", "rouge2", "rougeL", "rougeLsum"], use_stemmer=True
-    )
+    scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
     aggregator = scoring.BootstrapAggregator()
     for pred, tgt in zip(predictions, references):
         scores = scorer.score_multi(tgt, pred)  # type: ignore
@@ -56,6 +54,12 @@ def calculate_rouge(
 
     result = aggregator.aggregate()  # type: ignore
     return {str(k): float(v.mid.fmeasure * 100) for k, v in result.items()}  # type: ignore
+
+
+def calculate_rouge_single(prediction: str, ground_truth: str):
+    scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+    result = scorer.score(prediction=prediction, target=ground_truth)  # type: ignore
+    return {str(k): float(v.fmeasure * 100) for k, v in result.items()}  # type: ignore
 
 
 def calculate_bertscore(predictions: List[str], references: List[List[str]]):

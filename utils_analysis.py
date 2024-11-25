@@ -4,9 +4,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from dataclasses import dataclass
 from typing import Literal
-from src.eval import calculate_rouge, calculate_f1_score, calculate_bleu
+from src.eval import calculate_rouge_single, calculate_f1_score, calculate_bleu
 from scipy.stats import spearmanr  # type: ignore
+
+
+@dataclass
+class ConfidenceOutput:
+    scores_dataframe: pd.DataFrame
+    scores_by_beam: dict[str, dict[str, list[float]]]
+    sentences: list[list[str]]
 
 
 def argmax(iterable: list[float]):
@@ -19,7 +27,7 @@ def compute_metric_by_sample(
     metrics = list[float]()
     for pred, label in zip(predictions, targets):
         if metric == "rougeL":
-            score: float = calculate_rouge(predictions=[pred], references=[[label]])[
+            score: float = calculate_rouge_single(prediction=pred, ground_truth=label)[
                 "rougeL"
             ]
         elif metric == "bleu":
@@ -60,12 +68,20 @@ def prepare_scores(
         if "importance_weighted_log_probs" in scores
         else {}
     )
+    _ = (
+        scores.pop("sequence_joint_log_probs")
+        if "sequence_joint_log_probs" in scores
+        else {}
+    )
+    sentences: list[list[str]] = scores.pop("sentences")
+    top_sentences = [lst[0] for lst in sentences]
 
     if "mean_token_log_probs" in scores:
         scores.pop("mean_token_log_probs")
 
     df_score = pd.DataFrame.from_dict(scores)  # type: ignore
-    metrics = compute_metric_by_sample(scores["sentences"], targets, metric)
+    df_score["sentences"] = top_sentences
+    metrics = compute_metric_by_sample(top_sentences, targets, metric)
     df_score[metric] = metrics
 
     _, best_k = find_k_with_best_correlation(metrics, beam_score_ratios)
@@ -79,12 +95,16 @@ def prepare_scores(
     df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
     df_score[f"beam_score_top_k_{best_k}"] = beam_score_sum_top_k[str(best_k)]
     df_score[f"beam_score_impt_wt_{best_k}"] = beam_score_impt_weighted[str(best_k)]
-    return df_score, {
-        "beam_score_ratios": beam_score_ratios,
-        "beam_score_log_probs": beam_score_log_probs,
-        "beam_score_sum_top_k": beam_score_sum_top_k,
-        "beam_score_importance_wt": beam_score_impt_weighted,
-    }
+    return ConfidenceOutput(
+        scores_dataframe=df_score,
+        scores_by_beam={
+            "beam_score_ratios": beam_score_ratios,
+            "beam_score_log_probs": beam_score_log_probs,
+            "beam_score_sum_top_k": beam_score_sum_top_k,
+            "beam_score_importance_wt": beam_score_impt_weighted,
+        },
+        sentences=sentences,
+    )
 
 
 def plot_correlation(

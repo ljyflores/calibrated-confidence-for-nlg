@@ -21,7 +21,7 @@ MAX_NEW_TOKENS = 200
 @dataclass_json
 @dataclass
 class ConfidenceOutput:
-    sentences: list[str] | None = None
+    sentences: list[list[str]] | None = None
     dropout_sentences: list[list[str]] | None = None
     length_normalized_log_probs: list[float] | None = None
     sequence_joint_log_probs: list[list[float]] | None = None
@@ -83,13 +83,13 @@ def compute_average_pairwise_similarity(
     texts: list[str], similarity_method: Literal["bleu", "meteor"]
 ):
     id_pairs = combinations(iterable=list(range(len(texts))), r=2)
-    # Monte Carlo Dropout: https://arxiv.org/pdf/2305.15040
+    # BLEU Variance: https://arxiv.org/pdf/2006.08344
     if similarity_method == "bleu":
         bleu_scores = map(
             lambda pair: calculate_bleu([texts[pair[0]]], [[texts[pair[1]]]]),
             id_pairs,
         )
-        score = float(np.var(list(bleu_scores)))
+        score = np.mean((1 - np.array(list(bleu_scores))) ** 2)
     # Dropout Based Lexical Similarity: https://arxiv.org/pdf/2211.14880
     elif similarity_method == "meteor":
         meteor_scores = map(
