@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Literal
 import pandas as pd
 
 from datasets import Dataset  # type: ignore
@@ -11,9 +12,13 @@ from src.preprocess import encode_dataset
 def main(
     dataset: str,
     epochs: int,
+    model: Literal["bart", "flan"],
 ):
     DATA_PATH = dataset
-    MODEL_PATH = "google/flan-t5-base"  # "facebook/bart-base"
+    if model == "bart":
+        MODEL_PATH = "facebook/bart-base"
+    else:
+        MODEL_PATH = "google/flan-t5-base"
     MODEL_OUTPUT_PATH = f"{MODEL_PATH}_{DATA_PATH}"
     TRAIN_BATCH_SIZE = 5
     TRAIN_GRAD_ACC = 2
@@ -86,6 +91,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--epochs", type=int, default=3, required=False)
+    parser.add_argument("--model", type=str, required=True)
     parser.add_argument(
         "--wandb_project_name", type=str, required=False, default="huggingface"
     )
