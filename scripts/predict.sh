@@ -12,4 +12,4 @@ conda activate /home/mila/f/floresl/miniconda3/envs/al
 
 echo "Date:     $(date)"
 echo "Hostname: $(hostname)"
-python predict.py "$@"
+python -m src.predict "$@"
