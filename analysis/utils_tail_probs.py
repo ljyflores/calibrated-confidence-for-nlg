@@ -102,3 +102,17 @@ def compute_js_from_uniform(log_probs_by_sample: np.ndarray[Any, np.dtype[np.flo
         )
         js_distances.append(float(js))
     return js_distances
+
+
+def compute_js_from_baseline(
+    log_probs_by_sample_finetune: np.ndarray[Any, np.dtype[np.float64]],
+    log_probs_by_sample_baseline: np.ndarray[Any, np.dtype[np.float64]],
+):
+    js_distances = list[float]()
+    for i in range(log_probs_by_sample_finetune.shape[0]):
+        js = jensenshannon(
+            softmax(log_probs_by_sample_finetune[i], temperature=1),
+            softmax(log_probs_by_sample_baseline[i], temperature=1),
+        )
+        js_distances.append(float(js))
+    return js_distances

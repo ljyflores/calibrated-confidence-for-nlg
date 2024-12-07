@@ -71,7 +71,7 @@ def prepare_scores(
     )
     log_probs_by_sample = turn_log_prob_dict_into_np_array(beam_score_log_probs)
 
-    _ = (
+    _ = (  # type: ignore
         scores.pop("sequence_joint_log_probs")
         if "sequence_joint_log_probs" in scores
         else {}
@@ -168,7 +168,7 @@ def turn_log_prob_dict_into_np_array(
 ):
     log_probs_by_idx = np.array(
         [
-            dict_of_log_probs_by_beam_idx[idx]
+            dict_of_log_probs_by_beam_idx[str(idx)]
             for idx in range(len(dict_of_log_probs_by_beam_idx.keys()))
         ]
     )
