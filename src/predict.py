@@ -29,10 +29,14 @@ def turn_dataset_into_batches(dataset: Dataset, batch_size: int):
         yield item
 
 
-def main(dataset: str, model: str, num_beams: int):
+def main(dataset: str, model: str, num_beams: int, num_rows: int):
+    row_suffix = f"_{num_rows}_rows" if num_rows > 0 else ""
+
     MODEL_PATH = model
     DATA_PATH = dataset
-    OUTPUT_PATH = f"{'_'.join(MODEL_PATH.split('/')[-3:])}_{DATA_PATH.split('/')[1]}"
+    OUTPUT_PATH = (
+        f"{'_'.join(MODEL_PATH.split('/')[-3:])}_{DATA_PATH.split('/')[1]}{row_suffix}"
+    )
     INPUT_COLUMN = "source"
     OUTPUT_COLUMN = "target"
     EVAL_BATCH_SIZE = 1
@@ -41,7 +45,7 @@ def main(dataset: str, model: str, num_beams: int):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)  # type: ignore
     model_ = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH).cuda()  # type: ignore
 
-    df = pd.read_csv(DATA_PATH)  # type: ignore
+    df = pd.read_csv(DATA_PATH, nrows=num_rows) if num_rows > 0 else pd.read_csv(DATA_PATH)  # type: ignore
     ds = Dataset.from_pandas(df)
     ds = encode_dataset(
         ds,
@@ -77,6 +81,7 @@ if __name__ == "__main__":
         "--model", type=str, required=False, default="facebook/bart-base"
     )
     parser.add_argument("--num_beams", type=int, required=False, default=100)
+    parser.add_argument("--num_rows", type=int, required=False, default=-1)
     args_dict = vars(parser.parse_args())
 
     print(args_dict)
