@@ -52,7 +52,10 @@ def find_k_with_best_correlation(
 
 
 def prepare_scores(
-    json_path: str, targets: list[str], metric: Literal["rougeL", "f1", "bleu"]
+    json_path: str,
+    targets: list[str],
+    metric: Literal["rougeL", "f1", "bleu"],
+    temperature: float,
 ):
     scores = json.load(open(json_path, "r"))
     beam_score_ratios: dict[str, list[float]] = (
@@ -76,15 +79,17 @@ def prepare_scores(
         if "sequence_joint_log_probs" in scores
         else {}
     )
-    sentences: list[list[str]] = scores.pop("sentences")
-    top_sentences = [lst[0] for lst in sentences]
+    sentences = scores.pop("sentences")
+    top_sentences = [
+        str(lst[0]) if isinstance(lst[0], str) else "" for lst in sentences
+    ]
 
     if "mean_token_log_probs" in scores:
         scores.pop("mean_token_log_probs")
 
     df_score = pd.DataFrame.from_dict(scores)  # type: ignore
     df_score["sentences"] = top_sentences
-    df_score["tail_index"] = compute_tail_index(log_probs_by_sample)
+    df_score["tail_index"] = compute_tail_index(log_probs_by_sample, temperature)
     df_score["js_from_uniform"] = compute_js_from_uniform(log_probs_by_sample)
     metrics = compute_metric_by_sample(top_sentences, targets, metric)
     df_score[metric] = metrics

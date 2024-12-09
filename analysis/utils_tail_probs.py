@@ -84,10 +84,12 @@ def tail_index(nums_: list[float]):
     return float(np.sum(nums**2) / 2.0)
 
 
-def compute_tail_index(log_probs_by_sample: np.ndarray[Any, np.dtype[np.float64]]):
+def compute_tail_index(
+    log_probs_by_sample: np.ndarray[Any, np.dtype[np.float64]], temperature: float = 1.0
+):
     tail_indices = list[float]()
     for i in range(log_probs_by_sample.shape[0]):
-        probs = softmax(log_probs_by_sample[i], temperature=1)
+        probs = softmax(log_probs_by_sample[i], temperature=temperature)
         tail_indices.append(tail_index(probs))
     return tail_indices
 
