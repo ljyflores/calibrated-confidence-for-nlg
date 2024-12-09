@@ -1,2 +1,2 @@
-sbatch --job-name=train_xsum_bart --output=/home/mila/f/floresl/beam-search/logs/xsum/output_log_xsum_bart --error=/home/mila/f/floresl/beam-search/logs/xsum/error_log_xsum_bart scripts/train.sh --dataset data/xsum --epochs 3 --model bart
-sbatch --job-name=train_xsum_flan --output=/home/mila/f/floresl/beam-search/logs/xsum/output_log_xsum_flan --error=/home/mila/f/floresl/beam-search/logs/xsum/error_log_xsum_flan scripts/train.sh --dataset data/xsum --epochs 3 --model flan
+sbatch --job-name=train_xsum_bart --output=/home/mila/f/floresl/beam-search/logs/xsum/output_log_xsum_bart --error=/home/mila/f/floresl/beam-search/logs/xsum/error_log_xsum_bart scripts/train.sh --dataset data/xsum --epochs 1 --model bart
+sbatch --job-name=train_xsum_flan --output=/home/mila/f/floresl/beam-search/logs/xsum/output_log_xsum_flan --error=/home/mila/f/floresl/beam-search/logs/xsum/error_log_xsum_flan scripts/train.sh --dataset data/xsum --epochs 1 --model flan

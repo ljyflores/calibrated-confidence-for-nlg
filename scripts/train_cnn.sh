@@ -1,2 +1,2 @@
-sbatch --job-name=train_cnn_bart --output=/home/mila/f/floresl/beam-search/logs/cnn/output_log_cnn_bart --error=/home/mila/f/floresl/beam-search/logs/cnn/error_log_cnn_bart scripts/train.sh --dataset data/cnn --epochs 3 --model bart
-sbatch --job-name=train_cnn_flan --output=/home/mila/f/floresl/beam-search/logs/cnn/output_log_cnn_flan --error=/home/mila/f/floresl/beam-search/logs/cnn/error_log_cnn_flan scripts/train.sh --dataset data/cnn --epochs 3 --model flan
+sbatch --job-name=train_cnn_bart --output=/home/mila/f/floresl/beam-search/logs/cnn/output_log_cnn_bart --error=/home/mila/f/floresl/beam-search/logs/cnn/error_log_cnn_bart scripts/train.sh --dataset data/cnn --epochs 1 --model bart
+sbatch --job-name=train_cnn_flan --output=/home/mila/f/floresl/beam-search/logs/cnn/output_log_cnn_flan --error=/home/mila/f/floresl/beam-search/logs/cnn/error_log_cnn_flan scripts/train.sh --dataset data/cnn --epochs 1 --model flan
