@@ -4,7 +4,7 @@ from typing import Literal
 import pandas as pd
 
 from datasets import Dataset  # type: ignore
-from transformers import Seq2SeqTrainingArguments, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
+from transformers import EarlyStoppingCallback, Seq2SeqTrainingArguments, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
 
 from src.preprocess import encode_dataset
 
@@ -61,7 +61,8 @@ def main(
         fp16=False if "flan-t5" in MODEL_PATH else True,
         lr_scheduler_type="constant",
         # Evaluation parameters
-        eval_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=20,
         per_device_eval_batch_size=2,
         predict_with_generate=True,
         # generation_max_length=768,
@@ -72,8 +73,11 @@ def main(
         report_to="wandb",
         run_name=MODEL_OUTPUT_PATH,
         # Saving parameters
-        save_strategy="epoch",
+        save_strategy="steps",
+        save_steps=20,
         save_total_limit=1,
+        metric_for_best_model="eval_loss",
+        load_best_model_at_end=True,
     )
 
     trainer = Seq2SeqTrainer(
@@ -83,6 +87,11 @@ def main(
         train_dataset=training_dataset,  # type: ignore
         eval_dataset=validation_dataset,  # type: ignore
         data_collator=DataCollatorForSeq2Seq(tokenizer),
+        callbacks=[
+            EarlyStoppingCallback(
+                early_stopping_patience=2, early_stopping_threshold=0.01
+            )
+        ],
     )
     trainer.train()  # type: ignore
 

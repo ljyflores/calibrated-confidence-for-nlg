@@ -16,8 +16,8 @@ datasets = {
         "path": "data/flores/test.csv",
         "metric": "bleu",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_flores_checkpoint-1000_flores.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_flores_checkpoint-1000_flores.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_flores_checkpoint-240_flores.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_flores_checkpoint-260_flores.json",
         },
     },
     "hotpotqa": {
@@ -32,48 +32,48 @@ datasets = {
         "path": "data/squad/test.csv",
         "metric": "f1",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_squad_checkpoint-26280_squad.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_squad_checkpoint-26280_squad.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_squad_checkpoint-220_squad.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_squad_checkpoint-240_squad.json",
         },
     },
     "cnn": {
         "path": "data/cnn/test.csv",
         "metric": "rougeL",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/ljyflores_facebook-bart-base_data-cnn-checkpoint-6000_cnn.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/ljyflores_google-flan-t5-base_data-cnn-checkpoint-6000_cnn.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_cnn_checkpoint-140_cnn.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_cnn_checkpoint-200_cnn.json",
         },
     },
     "reddit": {
         "path": "data/reddit/test.csv",
         "metric": "rougeL",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/ljyflores_facebook-bart-base_data-reddit-checkpoint-6000_reddit.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/ljyflores_google-flan-t5-base_data-reddit-checkpoint-6000_reddit.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_reddit_checkpoint-200_reddit.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_reddit_checkpoint-200_reddit.json",
         },
     },
     "wmt_de_en": {
         "path": "data/wmt_de_en/test.csv",
         "metric": "bleu",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/ljyflores_facebook-bart-base_data-wmt_de_en-checkpoint-6000_wmt_de_en.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/ljyflores_google-flan-t5-base_data-wmt_de_en-checkpoint-6000_wmt_de_en.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_wmt_de_en_checkpoint-200_wmt_de_en.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_wmt_de_en_checkpoint-200_wmt_de_en.json",
         },
     },
     "wmt_ru_en": {
         "path": "data/wmt_ru_en/test.csv",
         "metric": "bleu",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/ljyflores_facebook-bart-base_data-wmt_ru_en-checkpoint-6000_wmt_ru_en.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/ljyflores_google-flan-t5-base_data-wmt_ru_en-checkpoint-6000_wmt_ru_en.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/final/ljyflores_facebook-bart-base_data-wmt_ru_en-checkpoint-6000_wmt_ru_en.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/final/ljyflores_google-flan-t5-base_data-wmt_ru_en-checkpoint-6000_wmt_ru_en.json",
         },
     },
     "xsum": {
         "path": "data/xsum/test.csv",
         "metric": "rougeL",
         "scores": {
-            "bart": "/home/mila/f/floresl/beam-search/results/ljyflores_facebook-bart-base_data-xsum-checkpoint-6000_xsum.json",
-            "t5": "/home/mila/f/floresl/beam-search/results/ljyflores_google-flan-t5-base_data-xsum-checkpoint-6000_xsum.json",
+            "bart": "/home/mila/f/floresl/beam-search/results/bart-base_data_xsum_checkpoint-200_xsum.json",
+            "t5": "/home/mila/f/floresl/beam-search/results/flan-t5-base_data_xsum_checkpoint-200_xsum.json",
         },
     },
 }

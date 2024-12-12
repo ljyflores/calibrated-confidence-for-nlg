@@ -1,1 +1,2 @@
-sbatch --job-name=train_squad --output=/home/mila/f/floresl/beam-search/logs/squad/output_log_squad --error=/home/mila/f/floresl/beam-search/logs/squad/error_log_squad scripts/train.sh --dataset data/squad --epochs 3
+sbatch --job-name=train_squad_bart --output=/home/mila/f/floresl/beam-search/logs/squad/output_log_squad_bart --error=/home/mila/f/floresl/beam-search/logs/squad/error_log_squad_bart scripts/train.sh --dataset data/squad --epochs 1 --model bart
+sbatch --job-name=train_squad_flan --output=/home/mila/f/floresl/beam-search/logs/squad/output_log_squad_flan --error=/home/mila/f/floresl/beam-search/logs/squad/error_log_squad_flan scripts/train.sh --dataset data/squad --epochs 1 --model flan

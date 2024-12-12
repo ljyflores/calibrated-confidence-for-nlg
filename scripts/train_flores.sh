@@ -1,1 +1,2 @@
-sbatch --job-name=train_flores --output=/home/mila/f/floresl/beam-search/logs/flores/output_log_flores --error=/home/mila/f/floresl/beam-search/logs/flores/error_log_flores scripts/train.sh --dataset data/flores --epochs 3
+sbatch --job-name=train_flores_bart --output=/home/mila/f/floresl/beam-search/logs/flores/output_log_flores_bart --error=/home/mila/f/floresl/beam-search/logs/flores/error_log_flores_bart scripts/train.sh --dataset data/flores --epochs 1 --model bart
+sbatch --job-name=train_flores_flan --output=/home/mila/f/floresl/beam-search/logs/flores/output_log_flores_flan --error=/home/mila/f/floresl/beam-search/logs/flores/error_log_flores_flan scripts/train.sh --dataset data/flores --epochs 1 --model flan
