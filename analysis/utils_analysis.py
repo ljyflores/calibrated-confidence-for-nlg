@@ -95,11 +95,6 @@ def prepare_scores(
     df_score[metric] = metrics
 
     _, best_k = find_k_with_best_correlation(metrics, beam_score_ratios)
-    # _, bs_log_probs_k = find_k_with_best_correlation(metrics, beam_score_log_probs)
-    # _, bs_sum_top_k = find_k_with_best_correlation(metrics, beam_score_sum_top_k)
-    # _, bs_imp_wt_k = find_k_with_best_correlation(
-    #     metrics, beam_score_importance_weighted
-    # )
 
     df_score[f"beam_score_ratios_{best_k}"] = beam_score_ratios[str(best_k)]
     df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
@@ -121,6 +116,8 @@ def plot_correlation(
     score_dictionary: dict[str, list[float]],
     metrics: list[float],
     corr_type: Literal["spearman", "pearson"],
+    title: str | None = None,
+    save_name: str | None = None,
 ):
     num_k = len(score_dictionary.keys())
     if corr_type == "pearson":
@@ -141,6 +138,10 @@ def plot_correlation(
         "Pearson Correlation" if corr_type == "pearson" else "Spearman Correlation"
     )
     plt.xlabel("k")  # type: ignore
+    if title:
+        plt.title(title)  # type: ignore
+    if save_name:
+        plt.savefig(save_name, bbox_inches="tight")  # type: ignore
 
 
 def plot_sequence_probs(
