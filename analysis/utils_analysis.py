@@ -3,6 +3,9 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import sys
+
+sys.path.append("/home/mila/f/floresl/beam-search")
 
 from analysis.utils_tail_probs import compute_tail_index, compute_js_from_uniform
 from dataclasses import dataclass
