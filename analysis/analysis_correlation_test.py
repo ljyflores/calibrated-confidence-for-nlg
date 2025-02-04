@@ -85,5 +85,5 @@ if __name__ == "__main__":
     p_val_tail = test_correlations(
         quality_scores, confidence_scores_tail, confidence_scores_baseline
     )
-    print(f"Ratio: {p_val_slope}")
+    print(f"Slope: {p_val_slope}")
     print(f"Tail: {p_val_tail}")
