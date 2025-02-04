@@ -62,8 +62,10 @@ python -m analysis.analyze --dataset <dataset> --model <model> --temperature <te
 Here, `model` can be either `bart` or `t5`, `temp` is a float, and `dataset` is one of the abbreviations provided earlier
 
 ### Paper Analyses
+We put the results and scripts for our analyses in the `analysis` folder; we put the instructions in the analysis folder's README to reproduce the results
 * [Demo Plots](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/plot_demos.ipynb)
 * [Plot Correlation by k (i.e. which beam to use in computing slope)](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/plot_by_k.py)
 * [Plot Correlation by Finetuning Step](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/plot_epoch.ipynb)
 * [Analyze Failure Cases](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/analysis_failure_cases.ipynb)
 * [Analyze Examples with Multiple Valid Answers](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/analysis_multiple_outputs.ipynb)
+* [Perform Stat Tests](https://github.com/ljyflores/beam-search-confidence/blob/main/analysis/analysis_correlation_test.py)
