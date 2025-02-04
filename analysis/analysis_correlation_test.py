@@ -65,7 +65,7 @@ if __name__ == "__main__":
     results = prepare_scores(scores_filepath, targets, metric, temperature)  # type: ignore
 
     confidence_score_df = results.scores_dataframe
-    col_ratio = str(
+    col_slope = str(
         list(
             filter(
                 lambda s: s.startswith("beam_score_ratios"), confidence_score_df.columns
@@ -74,16 +74,16 @@ if __name__ == "__main__":
     )
     col_tail = "tail_index"
 
-    confidence_scores_ratio = [float(x) for x in confidence_score_df[col_ratio]]  # type: ignore
-    confidence_scores_slope = [float(x) for x in confidence_score_df[col_tail]]  # type: ignore
+    confidence_scores_slope = [float(x) for x in confidence_score_df[col_slope]]  # type: ignore
+    confidence_scores_tail = [float(x) for x in confidence_score_df[col_tail]]  # type: ignore
     confidence_scores_baseline = [float(x) for x in confidence_score_df[args.baseline]]  # type: ignore
     quality_scores = [float(x) for x in confidence_score_df[metric]]  # type: ignore
 
-    p_val_ratio = test_correlations(
-        quality_scores, confidence_scores_ratio, confidence_scores_baseline
-    )
     p_val_slope = test_correlations(
         quality_scores, confidence_scores_slope, confidence_scores_baseline
     )
-    print(f"Ratio: {p_val_ratio}")
-    print(f"Slope: {p_val_slope}")
+    p_val_tail = test_correlations(
+        quality_scores, confidence_scores_tail, confidence_scores_baseline
+    )
+    print(f"Ratio: {p_val_slope}")
+    print(f"Tail: {p_val_tail}")
