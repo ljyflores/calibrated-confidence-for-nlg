@@ -9,25 +9,23 @@ The `analysis_correlation_test.py` script returns the p-value for the hypothesis
 The commands to run them for each dataset and model, with the next best method are as follows:
 
 ```bash
-python -m analysis.analysis_correlation_test --model bart --dataset debatesum --baseline beam_score_impt_wt_89 --temperature 1.00
+python -m analysis.analysis_correlation_test --model bart --dataset debatesum --baseline beam_score_impt_wt_99 --temperature 1.00
 
-python -m analysis.analysis_correlation_test --model t5 --dataset debatesum --baseline beam_score_impt_wt_94 --temperature 1.00
+python -m analysis.analysis_correlation_test --model t5 --dataset debatesum --baseline beam_score_impt_wt_99 --temperature 1.00
 
-python -m analysis.analysis_correlation_test --model t5 --dataset reddit --baseline dropout_bleu_variance --temperature 0.010
-
-python -m analysis.analysis_correlation_test --model bart --dataset flores --baseline dropout_bleu_variance --temperature 1.00
+python -m analysis.analysis_correlation_test --model bart --dataset flores --baseline dropout_meteor_score --temperature 1.00
 
 python -m analysis.analysis_correlation_test --model bart --dataset wmt_de_en --baseline dropout_bleu_variance --temperature 1.00
 
-python -m analysis.analysis_correlation_test --model bart --dataset wmt_ru_en --baseline beam_score_impt_wt_99 --temperature 1.00
+python -m analysis.analysis_correlation_test --model bart --dataset wmt_ru_en --baseline beam_score_impt_wt_79 --temperature 1.00
 
 python -m analysis.analysis_correlation_test --model t5 --dataset wmt_ru_en --baseline dropout_bleu_variance --temperature 1.00
 
-python -m analysis.analysis_correlation_test --model bart --dataset hotpotqa --baseline dropout_entropy --temperature 0.01
+python -m analysis.analysis_correlation_test --model bart --dataset hotpotqa --baseline beam_score_impt_wt_1 --temperature 0.01
 
-python -m analysis.analysis_correlation_test --model t5 --dataset hotpotqa --baseline dropout_entropy --temperature 0.05
+python -m analysis.analysis_correlation_test --model t5 --dataset hotpotqa --baseline beam_score_impt_wt_1 --temperature 0.05
 
-python -m analysis.analysis_correlation_test --model bart --dataset squad --baseline length_normalized_log_probs --temperature 0.05
+python -m analysis.analysis_correlation_test --model bart --dataset squad --baseline dropout_meteor_score --temperature 0.05
 
 python -m analysis.analysis_correlation_test --model t5 --dataset squad --baseline length_normalized_log_probs --temperature 0.001
 ```
