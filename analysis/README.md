@@ -9,9 +9,9 @@ The `analysis_correlation_test.py` script returns the p-value for the hypothesis
 The commands to run them for each dataset and model, with the next best method are as follows:
 
 ```bash
-python -m analysis.analysis_correlation_test --model bart --dataset debatesum --baseline beam_score_impt_wt_99 --temperature 1.00
+python -m analysis.analysis_correlation_test --model bart --dataset debatesum --baseline beam_score_impt_wt_95 --temperature 1.00
 
-python -m analysis.analysis_correlation_test --model t5 --dataset debatesum --baseline beam_score_impt_wt_99 --temperature 1.00
+python -m analysis.analysis_correlation_test --model t5 --dataset debatesum --baseline beam_score_impt_wt_85 --temperature 1.00
 
 python -m analysis.analysis_correlation_test --model bart --dataset flores --baseline dropout_meteor_score --temperature 1.00
 
