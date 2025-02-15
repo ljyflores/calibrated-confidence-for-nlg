@@ -4,15 +4,13 @@ from typing import Literal
 import pandas as pd
 
 from datasets import Dataset  # type: ignore
-from transformers import EarlyStoppingCallback, Seq2SeqTrainingArguments, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
+from transformers import EarlyStoppingCallback, Seq2SeqTrainingArguments, TrainerCallback, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
 
 from src.preprocess import encode_dataset
 
 
 def main(
-    dataset: str,
-    epochs: int,
-    model: Literal["bart", "flan"],
+    dataset: str, epochs: int, model: Literal["bart", "flan"], early_stopping: bool
 ):
     DATA_PATH = dataset
     if model == "bart":
@@ -80,6 +78,14 @@ def main(
         load_best_model_at_end=True,
     )
 
+    callback_list = list[TrainerCallback]()
+    if early_stopping:
+        callback_list.append(
+            EarlyStoppingCallback(
+                early_stopping_patience=2, early_stopping_threshold=0.01
+            )
+        )
+
     trainer = Seq2SeqTrainer(
         model=model,  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
         tokenizer=tokenizer,
@@ -87,11 +93,7 @@ def main(
         train_dataset=training_dataset,  # type: ignore
         eval_dataset=validation_dataset,  # type: ignore
         data_collator=DataCollatorForSeq2Seq(tokenizer),
-        callbacks=[
-            EarlyStoppingCallback(
-                early_stopping_patience=2, early_stopping_threshold=0.01
-            )
-        ],
+        callbacks=callback_list,
     )
     trainer.train()  # type: ignore
 
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wandb_project_name", type=str, required=False, default="huggingface"
     )
+    parser.add_argument("--early_stopping", type=bool, required=False, default=True)
     args_dict = vars(parser.parse_args())
     os.environ["WANDB_PROJECT"] = args_dict.pop("wandb_project_name")
 
