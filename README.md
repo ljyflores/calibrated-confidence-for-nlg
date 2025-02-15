@@ -29,7 +29,7 @@ To do a training run, enter
 The fine-tuned models can also be loaded from HuggingFace, namely using the following checkpoints
 
 Translation:
-* FLORES (Filipino): [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-flores-checkpoint-240), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-flores-checkpoint-260)
+* FLORES (Filipino): [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-flores-checkpoint-260), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-flores-checkpoint-200)
 * WMT DE EN: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-wmt_de_en-checkpoint-200), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-wmt_de_en-checkpoint-200)
 * WMT RU EN: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-wmt_ru_en-checkpoint-6000), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-wmt_ru_en-checkpoint-6000)
 
@@ -39,9 +39,9 @@ Question Answering:
 
 Summarization:
 * DebateSumm: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-debatesum-checkpoint-1500), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-debatesum-checkpoint-1500)
-* Reddit: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-reddit-checkpoint-200), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-reddit-checkpoint-200)
+* Reddit: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-reddit-checkpoint-140), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-reddit-checkpoint-200)
 * CNN: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-cnn-checkpoint-200), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-cnn-checkpoint-200)
-* XSUM: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-xsum-checkpoint-200), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-xsum-checkpoint-200)
+* XSUM: [BART](https://huggingface.co/ljyflores/facebook-bart-base_data-xsum-checkpoint-120), [Flan-T5](https://huggingface.co/ljyflores/google-flan-t5-base_data-xsum-checkpoint-200)
 
 ## Prediction
 Similarly, the prediction script can be run which will generate all the confidence scores for each of the methods we tried, and all have the form `scripts/predict_<dataset>.sh`
