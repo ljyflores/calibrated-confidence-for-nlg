@@ -55,12 +55,26 @@ def find_k_with_best_correlation(
 
 
 def prepare_scores(
-    json_path: str,
-    targets: list[str],
+    json_path_test: str,
+    json_path_val: str,
+    targets_test: list[str],
+    targets_val: list[str],
     metric: Literal["rougeL", "f1", "bleu"],
     temperature: float,
 ):
-    scores = json.load(open(json_path, "r"))
+    # Determine k to use in ratio method using validation set
+    scores_val = json.load(open(json_path_val, "r"))
+    beam_score_ratios_val = scores_val.pop("beam_score_ratios")
+    sentences_val = scores_val.pop("sentences")
+    top_sentences_val = [
+        str(lst[0]) if isinstance(lst[0], str) else "" for lst in sentences_val
+    ]
+    metrics_val = compute_metric_by_sample(top_sentences_val, targets_val, metric)
+    _, best_k = find_k_with_best_correlation(metrics_val, beam_score_ratios_val)
+    print(f"Best k: {best_k}")
+
+    # Unpack metrics from JSON of test set
+    scores = json.load(open(json_path_test, "r"))
     beam_score_ratios: dict[str, list[float]] = (
         scores.pop("beam_score_ratios") if "beam_score_ratios" in scores else {}
     )
@@ -93,16 +107,14 @@ def prepare_scores(
     df_score = pd.DataFrame.from_dict(scores)  # type: ignore
     df_score["sentences"] = top_sentences
     df_score["tail_index"] = compute_tail_index(log_probs_by_sample, temperature)
-    df_score["js_from_uniform"] = compute_js_from_uniform(log_probs_by_sample)
-    metrics = compute_metric_by_sample(top_sentences, targets, metric)
+    # df_score["js_from_uniform"] = compute_js_from_uniform(log_probs_by_sample)
+    metrics = compute_metric_by_sample(top_sentences, targets_test, metric)
     df_score[metric] = metrics
 
-    _, best_k = find_k_with_best_correlation(metrics, beam_score_ratios)
-
-    df_score[f"beam_score_ratios_{best_k}"] = beam_score_ratios[str(best_k)]
-    df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
-    df_score[f"beam_score_top_k_{best_k}"] = beam_score_sum_top_k[str(best_k)]
-    df_score[f"beam_score_impt_wt_{best_k}"] = beam_score_impt_weighted[str(best_k)]
+    df_score[f"beam_score_ratios"] = beam_score_ratios[str(best_k)]
+    # df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
+    # df_score[f"beam_score_top_k_{best_k}"] = beam_score_sum_top_k[str(best_k)]
+    df_score[f"beam_score_impt_wt"] = beam_score_impt_weighted[str(best_k)]
     return ConfidenceOutput(
         scores_dataframe=df_score,
         scores_by_beam={
@@ -138,9 +150,12 @@ def plot_correlation(
         y=correlations,
     )
     plt.ylabel(  # type: ignore
-        "Pearson Correlation" if corr_type == "pearson" else "Spearman Correlation"
+        "Pearson Correlation" if corr_type == "pearson" else "Spearman Correlation",
+        fontsize=16,
     )
-    plt.xlabel("k")  # type: ignore
+    plt.xlabel("k", fontsize=16)  # type: ignore
+    plt.xticks(fontsize=16)  # type: ignore
+    plt.yticks(fontsize=16)  # type: ignore
     if title:
         plt.title(title)  # type: ignore
     if save_name:

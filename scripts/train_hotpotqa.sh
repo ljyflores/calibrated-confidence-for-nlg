@@ -1,1 +1,2 @@
-sbatch --job-name=train_hotpotqa --output=/home/mila/f/floresl/beam-search/logs/hotpotqa/output_log_hotpotqa --error=/home/mila/f/floresl/beam-search/logs/hotpotqa/error_log_hotpotqa scripts/train.sh --dataset data/hotpotqa --epochs 3
+sbatch --job-name=train_hotpotqa_bart --output=/home/mila/f/floresl/beam-search/logs/hotpotqa/output_log_hotpotqa_bart --error=/home/mila/f/floresl/beam-search/logs/hotpotqa/error_log_hotpotqa_bart scripts/train.sh --dataset data/hotpotqa --epochs 3 --model bart
+sbatch --job-name=train_hotpotqa_flan --output=/home/mila/f/floresl/beam-search/logs/hotpotqa/output_log_hotpotqa_flan --error=/home/mila/f/floresl/beam-search/logs/hotpotqa/error_log_hotpotqa_flan scripts/train.sh --dataset data/hotpotqa --epochs 3 --model flan
