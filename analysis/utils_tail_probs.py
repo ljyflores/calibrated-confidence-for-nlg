@@ -94,16 +94,16 @@ def compute_tail_index(
     return tail_indices
 
 
-def compute_js_from_uniform(log_probs_by_sample: np.ndarray[Any, np.dtype[np.float64]]):
-    js_distances = list[float]()
-    n_beams = log_probs_by_sample.shape[1]
+def compute_entropy_by_sample(
+    log_probs_by_sample: np.ndarray[Any, np.dtype[np.float64]],
+    temperature: float = 1.0
+    ):
+    entropies = list[float]()
     for i in range(log_probs_by_sample.shape[0]):
-        js = jensenshannon(
-            softmax(log_probs_by_sample[i], temperature=1),
-            np.array([1 / n_beams] * n_beams),
-        )
-        js_distances.append(float(js))
-    return js_distances
+        probs = softmax(log_probs_by_sample[i], temperature=temperature)
+        entropy = float((-1.0 * probs * np.log(probs)).sum())
+        entropies.append(entropy)
+    return entropies
 
 
 def compute_js_from_baseline(

@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("/home/mila/f/floresl/beam-search")
 
-from analysis.utils_tail_probs import compute_tail_index, compute_js_from_uniform
+from analysis.utils_tail_probs import compute_tail_index, compute_entropy_by_sample
 from dataclasses import dataclass
 from typing import Literal
 from src.eval import calculate_rouge_single, calculate_f1_score, calculate_bleu
@@ -107,13 +107,13 @@ def prepare_scores(
     df_score = pd.DataFrame.from_dict(scores)  # type: ignore
     df_score["sentences"] = top_sentences
     df_score["tail_index"] = compute_tail_index(log_probs_by_sample, temperature)
-    # df_score["js_from_uniform"] = compute_js_from_uniform(log_probs_by_sample)
+    df_score["beam_score_entropy"] = compute_entropy_by_sample(log_probs_by_sample, temperature)
     metrics = compute_metric_by_sample(top_sentences, targets_test, metric)
     df_score[metric] = metrics
 
     df_score[f"beam_score_ratios"] = beam_score_ratios[str(best_k)]
     # df_score[f"beam_score_log_probs_{best_k}"] = beam_score_log_probs[str(best_k)]
-    # df_score[f"beam_score_top_k_{best_k}"] = beam_score_sum_top_k[str(best_k)]
+    df_score[f"beam_score_sum_top_{best_k}"] = beam_score_sum_top_k[str(best_k)]
     df_score[f"beam_score_impt_wt"] = beam_score_impt_weighted[str(best_k)]
     return ConfidenceOutput(
         scores_dataframe=df_score,
