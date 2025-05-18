@@ -1,4 +1,4 @@
-# beam-search-confidence
+# calibrated-confidence-for-nlg
 
 ## Set-Up
 ```bash
