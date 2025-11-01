@@ -4,7 +4,15 @@ from typing import Literal
 import pandas as pd
 
 from datasets import Dataset  # type: ignore
-from transformers import EarlyStoppingCallback, Seq2SeqTrainingArguments, TrainerCallback, AutoModelForSeq2SeqLM, AutoTokenizer, Seq2SeqTrainer, DataCollatorForSeq2Seq  # type: ignore
+from transformers import (
+    EarlyStoppingCallback,
+    Seq2SeqTrainingArguments,
+    TrainerCallback,
+    AutoModelForSeq2SeqLM,
+    AutoTokenizer,
+    Seq2SeqTrainer,
+    DataCollatorForSeq2Seq,
+)  # type: ignore
 
 from src.preprocess import encode_dataset
 
